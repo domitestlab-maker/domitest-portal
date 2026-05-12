@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal Domitest</title>
+<link rel="icon" href="logo.png">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Sora:wght@400;600;700&display=swap');
+
+  :root {
+    --blue: #5B9AB8;
+    --blue-dark: #4a839f;
+    --blue-light: #e8f3f8;
+    --blue-bg: #f0f5f8;
+    --green: #8BC34A;
+    --green-dark: #73a33a;
+    --green-light: #f1f8e4;
+    --gray: #f5f7fa;
+    --text: #1e2a35;
+    --text-muted: #7a8a96;
+    --border: #dde5ea;
+    --white: #ffffff;
+    --warn-bg: #fff8e1;
+    --warn-border: #f0c040;
+    --error: #c0392b;
+    --error-bg: #fdecea;
+    --shadow: 0 2px 12px rgba(91,154,184,0.10);
+    --shadow-lg: 0 8px 32px rgba(91,154,184,0.18);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 105%; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--blue-bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* LOGIN */
+  .login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .login-card {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 32px 28px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+  }
+  .login-card img { height: 110px; margin-bottom: 14px; max-width: 90%; object-fit: contain; }
+  .login-card h1 {
+    font-family: 'Sora', sans-serif;
+    color: var(--blue-dark);
+    font-size: 1.3rem;
+    margin-bottom: 6px;
+  }
+  .login-card .sub {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 22px;
+    text-align: justify;
+    text-justify: inter-word;
+    hyphens: auto;
+  }
+  .login-card label {
+    display: block;
+    text-align: left;
+    font-weight: 700;
+    color: var(--blue-dark);
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+    margin-top: 12px;
+  }
+  .login-card input {
+    width: 100%;
+    padding: 11px 13px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.95rem;
+  }
+  .login-card input:focus { outline: none; border-color: var(--blue); }
+  .login-card .login-err {
+    margin-top: 12px;
+    padding: 10px;
+    background: var(--error-bg);
+    color: var(--error);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    display: none;
+  }
+  .login-card .login-err.show { display: block; }
+  .remember-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    user-select: none;
+    cursor: pointer;
+    text-align: left;
+  }
+  .remember-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    cursor: pointer;
+    accent-color: var(--blue);
+  }
+  .remember-row label {
+    color: var(--text);
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    margin: 0;
+  }
+
+  /* HEADER */
+  header.app-header {
+    background: var(--white);
+    padding: 10px 20px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  header.app-header img { height: 100px; max-width: 60vw; object-fit: contain; }
+  .header-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+  }
+  .header-user .who {
+    text-align: right;
+  }
+  .header-user .name { font-weight: 700; color: var(--blue-dark); font-size: 1.05rem; }
+  .header-user .role { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .btn-logout {
+    background: var(--blue-light);
+    color: var(--blue-dark);
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-logout:hover { background: var(--blue); color: var(--white); }
+  .btn-gear {
+    background: var(--blue-light);
+    color: var(--blue-dark);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-gear:hover { background: var(--blue); color: var(--white); transform: rotate(45deg); }
+  .btn-gear.active { background: var(--blue); color: var(--white); }
+
+  /* CONTAINER */
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 20px 16px 40px;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 18px;
+    background: var(--white);
+    padding: 4px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+  }
+  .tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 10px 8px;
+    border-radius: 9px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tab-btn:hover { color: var(--blue-dark); }
+  .tab-btn.active {
+    background: var(--blue);
+    color: var(--white);
+  }
+  .tab-btn .badge {
+    display: inline-block;
+    background: var(--white);
+    color: var(--blue-dark);
+    border-radius: 10px;
+    padding: 1px 7px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    margin-left: 4px;
+  }
+  .tab-btn.active .badge {
+    background: var(--white);
+    color: var(--blue);
+  }
+  .tab-btn:not(.active) .badge {
+    background: var(--border);
+    color: var(--text-muted);
+  }
+
+  /* APPOINTMENT CARD */
+  .appt-list { display: flex; flex-direction: column; gap: 10px; }
+  .appt-card {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.15s;
+    border-left: 4px solid var(--blue);
+  }
+  .appt-card.pending { border-left-color: #ff6a3d; border-left-width: 5px; }
+  .appt-card.assigned { border-left-color: var(--green); }
+  .appt-card.completed { border-left-color: var(--text-muted); opacity: 0.85; }
+  .appt-card.cancelled { border-left-color: var(--error); opacity: 0.7; }
+  .appt-card:hover { transform: translateX(2px); box-shadow: var(--shadow-lg); }
+  .appt-card .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+    gap: 12px;
+  }
+  .appt-card .name {
+    font-weight: 700;
+    color: var(--text);
+    font-size: 1rem;
+  }
+  .appt-card .age {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .appt-card .info {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.45;
+  }
+  .appt-card .info strong { color: var(--text); }
+  .appt-card .status-tag {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .status-tag.pending {
+    background: linear-gradient(135deg, #ff6a3d, #ff8b3d);
+    color: white;
+    box-shadow: 0 1px 4px rgba(255,106,61,0.3);
+  }
+  .status-tag.assigned {
+    background: linear-gradient(135deg, var(--green), var(--green-dark));
+    color: white;
+    box-shadow: 0 1px 4px rgba(139,195,74,0.3);
+  }
+  .status-tag.completed { background: var(--blue-light); color: var(--blue-dark); }
+  .status-tag.cancelled { background: var(--error-bg); color: var(--error); }
+
+  .empty-state {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-muted);
+    box-shadow: var(--shadow);
+  }
+  .empty-state .icon { font-size: 2.5rem; margin-bottom: 10px; }
+
+  /* CONFIG SECTION */
+  .config-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .config-header h2 {
+    font-family: 'Sora', sans-serif;
+    color: var(--blue-dark);
+    font-size: 1.1rem;
+  }
+  .btn-add {
+    background: var(--green);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 9px 16px;
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s;
+  }
+  .btn-add:hover { background: var(--green-dark); }
+
+  .user-card {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 10px;
+    border-left: 4px solid var(--blue);
+  }
+  .user-card.owner { border-left-color: #9b59b6; }
+  .user-card.inactive { opacity: 0.6; border-left-color: var(--text-muted); }
+  .user-card .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+  }
+  .user-card .name {
+    font-weight: 700;
+    color: var(--text);
+    font-size: 1rem;
+  }
+  .user-card .role-tag {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 12px;
+    background: var(--blue-light);
+    color: var(--blue-dark);
+  }
+  .user-card.owner .role-tag { background: #f3e6f9; color: #6c2c8a; }
+  .user-card .info-line {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    padding: 2px 0;
+  }
+  .user-card .info-line strong { color: var(--text); font-weight: 600; }
+  .user-card .actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .user-card .btn-action {
+    flex: 1;
+    min-width: 110px;
+    background: var(--blue-light);
+    color: var(--blue-dark);
+    border: none;
+    border-radius: 8px;
+    padding: 8px;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .user-card .btn-action:hover { background: var(--blue); color: white; }
+  .user-card .btn-action.danger {
+    background: var(--error-bg);
+    color: var(--error);
+  }
+  .user-card .btn-action.danger:hover { background: var(--error); color: white; }
+  .user-card .btn-action.activate {
+    background: var(--green-light);
+    color: var(--green-dark);
+  }
+  .user-card .btn-action.activate:hover { background: var(--green-dark); color: white; }
+
+  .user-form {
+    background: var(--gray);
+    padding: 14px;
+    border-radius: 10px;
+    margin-top: 12px;
+  }
+  .user-form label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--blue-dark);
+    margin-bottom: 5px;
+    margin-top: 10px;
+  }
+  .user-form input, .user-form select {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    background: var(--white);
+  }
+  .user-form input:focus { outline: none; border-color: var(--blue); }
+  .user-form .form-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .user-form .form-actions .btn {
+    margin: 0;
+    padding: 10px;
+    font-size: 0.88rem;
+  }
+
+  /* LOADING & ERROR */
+  .loading-box { text-align: center; padding: 50px 20px; }
+  .spinner {
+    width: 40px; height: 40px;
+    border: 4px solid var(--blue-light);
+    border-top-color: var(--blue);
+    border-radius: 50%;
+    margin: 0 auto 12px;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* DETAIL VIEW */
+  .detail-card {
+    background: var(--white);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .detail-section {
+    padding: 18px 18px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .detail-section:last-child { border-bottom: none; }
+  .detail-section h3 {
+    font-family: 'Sora', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--blue);
+    margin-bottom: 10px;
+  }
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 0;
+    gap: 12px;
+  }
+  .detail-row .key {
+    color: #3a5a72;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .detail-row .val {
+    font-weight: 500;
+    color: var(--text);
+    text-align: right;
+    font-size: 0.95rem;
+  }
+  .detail-row .val.mono { font-family: monospace; }
+  .detail-row .val .phone-link {
+    font-size: 1.05rem;
+    color: var(--green-dark);
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+
+  .tubes-row {
+    background: var(--blue-light);
+    padding: 14px 16px;
+    border-radius: 10px;
+    margin-top: 8px;
+    font-size: 0.92rem;
+  }
+  .tubes-row .label {
+    font-weight: 700;
+    color: var(--blue-dark);
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .tube-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin: 3px 4px 3px 0;
+    background: var(--white);
+    border: 1.5px solid;
+  }
+  .tube-pill .dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .tube-pill.lila { border-color: #9b59b6; color: #6c2c8a; }
+  .tube-pill.lila .dot { background: #9b59b6; }
+  .tube-pill.amarillo { border-color: #f1c40f; color: #8a6d10; }
+  .tube-pill.amarillo .dot { background: #f1c40f; }
+  .tube-pill.azul { border-color: var(--blue); color: var(--blue-dark); }
+  .tube-pill.azul .dot { background: var(--blue); }
+  .tube-pill.orina { border-color: #d4a017; color: #8a6d10; }
+  .tube-pill.orina .dot { background: linear-gradient(to bottom, #f1c40f, #d4a017); }
+  .tube-pill.esteril { border-color: var(--text-muted); color: var(--text-muted); }
+  .tube-pill.esteril .dot { background: var(--white); border: 2px solid var(--text-muted); }
+
+  .examenes-list { display: flex; flex-direction: column; gap: 4px; }
+  .examenes-list li {
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    font-size: 0.88rem;
+    border-bottom: 1px dashed var(--border);
+  }
+  .examenes-list li:last-child { border-bottom: none; }
+  .examenes-list .ex-tube {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-left: 8px;
+  }
+  .examenes-list .ex-price {
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .address-link {
+    color: var(--blue);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .address-link:hover { text-decoration: underline; }
+  .phone-link {
+    color: var(--green-dark);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  /* Dirección destacada */
+  .section-key {
+    padding: 18px 18px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-key h3 {
+    font-family: 'Sora', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--blue);
+    margin-bottom: 10px;
+  }
+  .address-big {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.35;
+  }
+  .address-zone {
+    font-size: 0.92rem;
+    color: var(--text-muted);
+    margin-top: 8px;
+  }
+  .map-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--green-dark);
+    background: linear-gradient(135deg, var(--green-light) 0%, #e8f5d4 100%);
+    border: 2px solid var(--green);
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    text-decoration: none;
+    margin-top: 14px;
+    transition: all 0.15s ease;
+  }
+  .map-link:hover {
+    background: var(--green);
+    color: var(--white);
+  }
+
+  /* Total destacado */
+  .total-highlight {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, var(--green-light) 0%, #e8f5d4 100%);
+    border: 2px solid var(--green);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+  }
+  .total-highlight .lbl {
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--green-dark);
+  }
+  .total-highlight .amt {
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--green-dark);
+  }
+
+  .tube-group-card {
+    background: var(--white);
+    border: 2px solid;
+    border-radius: 12px;
+    padding: 10px 16px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: fit-content;
+  }
+  .tube-group-card.lila { border-color: #9b59b6; }
+  .tube-group-card.amarillo { border-color: #f1c40f; }
+  .tube-group-card.azul { border-color: var(--blue); }
+  .tube-group-card.orina { border-color: #d4a017; }
+  .tube-group-card.esteril { border-color: var(--text-muted); }
+  .tube-group-card .tg-dot {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .tube-group-card.lila .tg-dot { background: #9b59b6; }
+  .tube-group-card.amarillo .tg-dot { background: #f1c40f; }
+  .tube-group-card.azul .tg-dot { background: var(--blue); }
+  .tube-group-card.orina .tg-dot { background: linear-gradient(to bottom, #f1c40f, #d4a017); }
+  .tube-group-card.esteril .tg-dot { background: var(--white); border: 2px solid var(--text-muted); }
+  .tube-group-card .tg-body {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+  }
+  .tube-group-card .tg-title {
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 0.98rem;
+    color: var(--text);
+  }
+  .tube-group-card .tg-content {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* BUTTONS */
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 11px;
+    font-family: inherit;
+    font-size: 0.97rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-top: 6px;
+  }
+  .btn-primario {
+    background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+    color: var(--white);
+    box-shadow: 0 2px 8px rgba(91,154,184,0.3);
+  }
+  .btn-primario:hover { transform: translateY(-1px); }
+  .btn-primario:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  .btn-verde {
+    background: linear-gradient(135deg, var(--green), var(--green-dark));
+    color: var(--white);
+    box-shadow: 0 2px 8px rgba(139,195,74,0.3);
+  }
+  .btn-verde:hover { transform: translateY(-1px); }
+  .btn-verde:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  .btn-wa {
+    background: var(--white);
+    color: var(--green-dark);
+    border: 1.5px solid var(--green);
+    margin-top: 8px;
+  }
+  .btn-wa:hover { background: var(--green-light); }
+
+  .btn-secundario {
+    background: var(--white);
+    color: var(--blue-dark);
+    border: 1.5px solid var(--blue);
+    margin-top: 8px;
+  }
+  .btn-secundario:hover { background: var(--blue-light); }
+
+  .btn-danger {
+    background: var(--white);
+    color: var(--error);
+    border: 1.5px solid var(--error);
+    margin-top: 8px;
+    font-size: 0.88rem;
+    padding: 12px;
+  }
+  .btn-danger:hover { background: var(--error-bg); }
+
+  .btn-warn {
+    background: var(--white);
+    color: var(--text-muted);
+    border: 1.5px solid var(--border);
+    margin-top: 8px;
+  }
+  .btn-warn:hover {
+    background: var(--blue-bg);
+    border-color: var(--blue);
+    color: var(--blue-dark);
+  }
+
+  /* Reagendar inline form */
+  .reagendar-form {
+    background: var(--blue-light);
+    padding: 14px;
+    border-radius: 10px;
+    margin-top: 10px;
+    display: none;
+  }
+  .reagendar-form.show { display: block; }
+  .reagendar-form label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--blue-dark);
+    margin-bottom: 4px;
+    margin-top: 8px;
+  }
+  .reagendar-form input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    background: var(--white);
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 8px;
+  }
+  .btn-row .btn { margin-top: 0; }
+
+  /* TAKE CITA FORM */
+  .take-form { padding: 4px 0; }
+  .take-form label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--blue-dark);
+    margin-bottom: 6px;
+    margin-top: 10px;
+  }
+  .take-form select, .take-form input {
+    width: 100%;
+    padding: 11px 13px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    background: var(--white);
+  }
+  .take-form select:focus, .take-form input:focus { outline: none; border-color: var(--blue); }
+
+  /* PANTALLA */
+  .pantalla { display: none; }
+  .pantalla.activa { display: block; animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 20px;
+    border-radius: 30px;
+    background: var(--text);
+    color: var(--white);
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    display: none;
+  }
+  .toast.show { display: block; }
+  .toast.success { background: var(--green-dark); }
+  .toast.error { background: var(--error); }
+
+  @media (max-width: 540px) {
+    .container { padding: 14px 12px 40px; }
+    header.app-header img { height: 32px; }
+    .header-user .role { display: none; }
+    .tab-btn { font-size: 0.78rem; padding: 9px 4px; }
+    .tab-btn .badge { display: block; margin: 2px 0 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<section id="login" class="pantalla activa">
+  <div class="login-screen">
+    <div class="login-card">
+      <img src="logo.png" alt="Domitest">
+      <h1>Portal de domicilios</h1>
+      <p class="sub">Plataforma para coordinar las citas de toma de muestras a domicilio.</p>
+
+      <form onsubmit="onLogin(event)">
+        <label for="loginUser">Usuario</label>
+        <input id="loginUser" type="text" autocomplete="username" autofocus>
+
+        <label for="loginPass">Contraseña</label>
+        <input id="loginPass" type="password" autocomplete="current-password">
+
+        <div class="remember-row">
+          <input id="rememberMe" type="checkbox" checked>
+          <label for="rememberMe">Recordar mi sesión (30 días)</label>
+        </div>
+
+        <div class="login-err" id="loginErr"></div>
+
+        <button class="btn btn-verde" id="btnLogin" type="submit" style="margin-top:18px;">Iniciar sesión</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- APP -->
+<section id="app" class="pantalla">
+  <header class="app-header">
+    <img src="logo.png" alt="Domitest">
+    <div class="header-user">
+      <div class="who">
+        <div class="name" id="userName">-</div>
+        <div class="role" id="userRole">-</div>
+      </div>
+      <button class="btn-gear" id="btnGear" onclick="setTab('config')" title="Configuración" style="display:none;">⚙️</button>
+      <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- DASHBOARD -->
+    <div id="dashboard">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="pending" onclick="setTab('pending')">Pendientes <span class="badge" id="badgePending">0</span></button>
+        <button class="tab-btn" data-tab="mine" onclick="setTab('mine')"><span id="mineTabLabel">Mis citas</span> <span class="badge" id="badgeMine">0</span></button>
+      </div>
+
+      <div id="dashContent">
+        <div class="loading-box"><div class="spinner"></div><p>Cargando solicitudes...</p></div>
+      </div>
+    </div>
+
+    <!-- DETAIL -->
+    <div id="detail" style="display:none;">
+      <button class="btn-logout" onclick="backToDash()" style="margin-bottom:14px;">← Volver</button>
+      <div id="detailContent"></div>
+    </div>
+  </main>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────
+const PROXY_URL = 'https://domitest-proxy.vercel.app';
+const REFRESH_MS = 60000;
+
+// ── TUBE MAPPING (espejo del backend) ─────────────────────────────
+const TUBE_RULES = [
+  { tube: 'lila', match: /HEMOGRAMA|HEMOLEUCOGRAMA|HEMATIES|RETICULOCITOS|GRUPO SANGUINEO|HEMOGLOBINA GLICOSILADA|HBA1C|HEMOSEDIMENTACION|VSG|VELOCIDAD DE SEDIMENTACION|FROTIS DE SANGRE/i },
+  { tube: 'azul', match: /COAGULACION|PROTROMBINA|TROMBOPLASTINA|TIEMPO DE PROTROMBINA|TIEMPO PARCIAL|^PT$|^PTT$|^TP$|^TPT$|INR|FIBRINOGENO|DIMERO D|D-DIMERO|ANTITROMBINA|ANTICOAGULANTE LUPICO|PROTEINA C|PROTEINA S/i },
+  { tube: 'orina', match: /UROANALISIS|PARCIAL DE ORINA|EN ORINA/i },
+  { tube: 'esteril', match: /UROCULTIVO|COPROCULTIVO|HEMOCULTIVO|CULTIVO|EN HECES|COPROSCOPICO|COPROLOGICO|FROTIS FARINGEO|FROTIS VAGINAL/i }
+];
+const TUBE_LABEL = {
+  lila: 'Lila (EDTA)',
+  azul: 'Azul (citrato)',
+  amarillo: 'Amarillo (SST)',
+  orina: 'Frasco de orina',
+  esteril: 'Frasco estéril'
+};
+// Contenido / aditivo de cada tipo de tubo (estándar de laboratorio)
+const TUBE_CONTENT = {
+  lila: 'EDTA — anticoagulante',
+  azul: 'Citrato de sodio',
+  amarillo: 'Gel separador + activador de coagulación',
+  orina: 'Sin aditivos',
+  esteril: 'Estéril, sin aditivos'
+};
+function detectTube(name) {
+  const n = (name || '').toUpperCase();
+  for (const r of TUBE_RULES) if (r.match.test(n)) return r.tube;
+  return 'amarillo';
+}
+// Agrupa exámenes por tipo de tubo. Devuelve { tube_type: [examNames...] }
+// Lógica: 1 tubo por tipo cubre múltiples exámenes (estándar de laboratorio).
+function groupExamsByTube(exams) {
+  const groups = {};
+  for (const e of (exams || [])) {
+    const t = detectTube(e.name);
+    if (!groups[t]) groups[t] = [];
+    groups[t].push((e.name || '').toUpperCase());
+  }
+  return groups;
+}
+
+// ── STATE ─────────────────────────────────────────────────────────
+let token = null;
+let currentUser = null;
+let allAppointments = [];
+let currentTab = 'pending';
+let refreshTimer = null;
+
+// ── INIT ──────────────────────────────────────────────────────────
+function loadStoredAuth() {
+  // Primero localStorage (sesión recordada 30 días), luego sessionStorage (sesión actual)
+  const t = localStorage.getItem('domitest_portal_token') || sessionStorage.getItem('domitest_portal_token');
+  const u = localStorage.getItem('domitest_portal_user') || sessionStorage.getItem('domitest_portal_user');
+  return t && u ? { token: t, user: JSON.parse(u) } : null;
+}
+
+function init() {
+  const stored = loadStoredAuth();
+  if (stored) {
+    token = stored.token;
+    currentUser = stored.user;
+    enterApp();
+  }
+}
+
+// ── LOGIN ─────────────────────────────────────────────────────────
+async function onLogin(e) {
+  e.preventDefault();
+  const username = document.getElementById('loginUser').value.trim().toLowerCase();
+  const password = document.getElementById('loginPass').value;
+  const errBox = document.getElementById('loginErr');
+  const btn = document.getElementById('btnLogin');
+
+  errBox.classList.remove('show');
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+
+  try {
+    const res = await fetch(PROXY_URL + '/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Error de autenticación');
+    token = data.token;
+    currentUser = data.user;
+    const remember = document.getElementById('rememberMe').checked;
+    const storage = remember ? localStorage : sessionStorage;
+    storage.setItem('domitest_portal_token', token);
+    storage.setItem('domitest_portal_user', JSON.stringify(currentUser));
+    enterApp();
+  } catch (err) {
+    errBox.textContent = err.message;
+    errBox.classList.add('show');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Iniciar sesión';
+  }
+}
+
+function enterApp() {
+  document.getElementById('login').classList.remove('activa');
+  document.getElementById('app').classList.add('activa');
+  document.getElementById('userName').textContent = currentUser.name;
+  document.getElementById('userRole').textContent = currentUser.role === 'owner' ? 'Administradora' : 'Auxiliar';
+  // Renombrar segunda pestaña según rol
+  document.getElementById('mineTabLabel').textContent = currentUser.role === 'owner' ? 'Asignadas' : 'Mis citas';
+  // Mostrar botón de configuración solo a admin
+  if (currentUser.role === 'owner') {
+    document.getElementById('btnGear').style.display = '';
+    // Pre-cargar usuarios para que el dropdown de "Asignar a" funcione
+    loadUsersSilent();
+  }
+  loadAppointments();
+  if (refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = setInterval(loadAppointments, REFRESH_MS);
+}
+
+function logout() {
+  sessionStorage.removeItem('domitest_portal_token');
+  sessionStorage.removeItem('domitest_portal_user');
+  localStorage.removeItem('domitest_portal_token');
+  localStorage.removeItem('domitest_portal_user');
+  token = null;
+  currentUser = null;
+  if (refreshTimer) clearInterval(refreshTimer);
+  document.getElementById('app').classList.remove('activa');
+  document.getElementById('login').classList.add('activa');
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+}
+
+// ── API helper ────────────────────────────────────────────────────
+async function api(path, options = {}) {
+  const opts = {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token,
+      ...(options.headers || {})
+    },
+    ...options
+  };
+  const res = await fetch(PROXY_URL + path, opts);
+  if (res.status === 401) {
+    logout();
+    throw new Error('Sesión expirada');
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+  return data;
+}
+
+// ── LOAD APPOINTMENTS ─────────────────────────────────────────────
+async function loadAppointments() {
+  try {
+    allAppointments = await api('/api/appointments');
+    renderDashboard();
+  } catch (err) {
+    console.error('Error cargando citas:', err);
+  }
+}
+
+// Define qué citas aparecen en la pestaña "Mis citas / Asignadas"
+function isInMineTab(a) {
+  if (a.status === 'pending') return false;
+  if (currentUser.role === 'owner') {
+    // Owner ve todas las que están asignadas/canceladas/completadas
+    return true;
+  }
+  // Auxiliar solo ve las suyas
+  return currentUser.auxiliar_id && a.auxiliar_id === currentUser.auxiliar_id;
+}
+
+function renderDashboard() {
+  // Update badges
+  const counts = { pending: 0, mine: 0 };
+  for (const a of allAppointments) {
+    if (a.status === 'pending') counts.pending++;
+    if (isInMineTab(a)) counts.mine++;
+  }
+  document.getElementById('badgePending').textContent = counts.pending;
+  document.getElementById('badgeMine').textContent = counts.mine;
+
+  // Filter for current tab
+  let filtered = [];
+  if (currentTab === 'pending') {
+    filtered = allAppointments.filter(a => a.status === 'pending');
+  } else if (currentTab === 'mine') {
+    filtered = allAppointments.filter(isInMineTab);
+  }
+
+  const dash = document.getElementById('dashContent');
+  if (filtered.length === 0) {
+    dash.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No hay solicitudes en esta sección</p></div>';
+    return;
+  }
+
+  const list = document.createElement('div');
+  list.className = 'appt-list';
+  for (const a of filtered) {
+    list.appendChild(buildCard(a));
+  }
+  dash.innerHTML = '';
+  dash.appendChild(list);
+}
+
+function buildCard(a) {
+  const card = document.createElement('div');
+  card.className = 'appt-card ' + a.status;
+  card.onclick = () => showDetail(a);
+
+  const days = formatDays(a.preferred_dates);
+  const ageStr = timeSince(a.created_at);
+
+  const zone = a.quote?.zone_name || '';
+  const shortAddr = (a.patient_address || '').split(',').slice(0, 2).join(',');
+
+  let bottomLine = '';
+  if (a.status === 'assigned' && a.scheduled_date) {
+    bottomLine = `<strong>${formatSingleDay(a.scheduled_date)}${a.scheduled_time ? ' a las ' + formatTime(a.scheduled_time) : ''}</strong> · ${a.auxiliar?.name || ''}`;
+    if (zone) bottomLine += `<br>📍 <strong>${zone}</strong> · ${escapeHtml(shortAddr)}`;
+  } else if (a.status === 'pending') {
+    bottomLine = `Paciente agendó: <strong>${days}</strong>`;
+    if (zone) bottomLine += `<br>📍 <strong>${zone}</strong> · ${escapeHtml(shortAddr)}`;
+  } else if (a.status === 'completed') {
+    bottomLine = `Completada el ${formatSingleDay(a.scheduled_date || a.completed_at)}`;
+  } else if (a.status === 'cancelled') {
+    bottomLine = `Cancelada`;
+  }
+
+  const statusLabel = { pending: 'Pendiente', assigned: 'Asignada', completed: 'Completada', cancelled: 'Cancelada' }[a.status] || a.status;
+
+  card.innerHTML = `
+    <div class="top">
+      <div>
+        <div class="name">${escapeHtml(a.patient_name)}</div>
+        <span class="status-tag ${a.status}">${statusLabel}</span>
+      </div>
+      <div class="age">${ageStr}</div>
+    </div>
+    <div class="info">${bottomLine}</div>
+  `;
+  return card;
+}
+
+// ── TAB SWITCH ────────────────────────────────────────────────────
+function setTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tab);
+  });
+  const gear = document.getElementById('btnGear');
+  if (gear) gear.classList.toggle('active', tab === 'config');
+  if (tab === 'config') {
+    loadUsers();
+  } else {
+    renderDashboard();
+  }
+}
+
+// ── DETAIL ─────────────────────────────────────────────────────────
+function showDetail(a) {
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('detail').style.display = 'block';
+  document.getElementById('detailContent').innerHTML = renderDetail(a);
+  window.scrollTo(0, 0);
+}
+
+function backToDash() {
+  document.getElementById('detail').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  renderDashboard();
+}
+
+function renderDetail(a) {
+  const q = a.quote || {};
+  const exams = q.exams || [];
+  const tubeGroups = groupExamsByTube(exams);
+
+  // Tube cards: 1 tarjeta por tipo de tubo (solo cantidad + color)
+  let tubeCards = '';
+  for (const t of Object.keys(tubeGroups)) {
+    tubeCards += `
+      <div class="tube-group-card ${t}">
+        <span class="tg-dot"></span>
+        <span class="tg-title">1 tubo ${TUBE_LABEL[t]}</span>
+      </div>`;
+  }
+  if (!tubeCards) tubeCards = '<em style="color:var(--text-muted);">No se detectaron tubos automáticamente</em>';
+
+  // Exams list (UPPERCASE)
+  let examsList = '<ul class="examenes-list">';
+  for (const e of exams) {
+    examsList += `<li><span>${escapeHtml((e.name || '').toUpperCase())}</span><span class="ex-price">${formatCOP(e.price)}</span></li>`;
+  }
+  examsList += '</ul>';
+
+  // Address with Google Maps link
+  const addrLink = 'https://www.google.com/maps/search/' + encodeURIComponent(a.patient_address + ' Medellín');
+
+  // Status-specific actions
+  let actions = '';
+  if (a.status === 'pending') {
+    actions = renderTakeForm(a);
+  } else if (a.status === 'assigned') {
+    actions = renderAssignedActions(a);
+  } else {
+    actions = '<div style="padding:14px;text-align:center;color:var(--text-muted);font-size:0.85rem;">Esta cita ya no tiene acciones pendientes.</div>';
+  }
+
+  return `
+    <div class="detail-card">
+      <!-- Paciente -->
+      <div class="detail-section">
+        <h3>Paciente</h3>
+        <div class="detail-row"><span class="key">Nombre completo</span><span class="val">${escapeHtml(a.patient_name)}</span></div>
+        <div class="detail-row"><span class="key">Documento</span><span class="val mono">${escapeHtml(a.patient_doc)}</span></div>
+        ${a.patient_birthdate ? `<div class="detail-row"><span class="key">Fecha de nacimiento</span><span class="val mono">${formatBirthdate(a.patient_birthdate)}</span></div>` : ''}
+        <div class="detail-row"><span class="key">Teléfono 1</span><span class="val"><a class="phone-link" href="https://wa.me/57${a.patient_phone1.replace(/\D/g,'').slice(-10)}">${a.patient_phone1}</a></span></div>
+        ${a.patient_phone2 ? `<div class="detail-row"><span class="key">Teléfono 2</span><span class="val"><a class="phone-link" href="https://wa.me/57${a.patient_phone2.replace(/\D/g,'').slice(-10)}">${a.patient_phone2}</a></span></div>` : ''}
+        ${a.status === 'assigned' ? `<div class="detail-row"><span class="key">Asignada a</span><span class="val">${a.auxiliar?.name || '-'}</span></div>` : ''}
+        ${a.status === 'assigned' && a.scheduled_date ? `<div class="detail-row"><span class="key">Programada</span><span class="val">${formatSingleDay(a.scheduled_date)}${a.scheduled_time ? ' · ' + formatTime(a.scheduled_time) : ''}</span></div>` : ''}
+      </div>
+
+      <!-- Dirección -->
+      <div class="section-key">
+        <h3>Dirección</h3>
+        <div class="address-big">${escapeHtml(a.patient_address)}</div>
+        ${q.zone_name ? `<div class="address-zone">Zona: <strong>${escapeHtml(q.zone_name)}</strong></div>` : ''}
+        <a class="map-link" href="${addrLink}" target="_blank">Abrir dirección en Google Maps</a>
+      </div>
+
+      <!-- Tubos a llevar -->
+      <div class="detail-section">
+        <h3>Tubos a llevar</h3>
+        ${tubeCards}
+      </div>
+
+      <!-- Exámenes (UPPERCASE) -->
+      <div class="detail-section">
+        <h3>Exámenes (${exams.length})</h3>
+        ${examsList}
+      </div>
+
+      <!-- Pago -->
+      <div class="detail-section">
+        <h3>Pago</h3>
+        <div class="total-highlight">
+          <span class="lbl">Total a cobrar</span>
+          <span class="amt">${formatCOP(q.total || 0)}</span>
+        </div>
+        <div class="detail-row"><span class="key">Forma de pago</span><span class="val">${a.payment_method === 'cash' ? '💵 Efectivo' : a.payment_method === 'transfer' ? '📱 Transferencia' : '-'}</span></div>
+      </div>
+
+      <div class="detail-section">
+        ${actions}
+      </div>
+    </div>
+  `;
+}
+
+function renderTakeForm(a) {
+  const isAuxiliar = currentUser.role === 'auxiliar';
+  const dateOptions = (a.preferred_dates || []).map(d => `<option value="${d}">${formatSingleDay(d)}</option>`).join('');
+
+  return `
+    <h3>Tomar esta cita</h3>
+    <div class="take-form">
+      <label>Día (de los que pidió el paciente)</label>
+      <select id="takeDate">${dateOptions}</select>
+
+      <label>Hora exacta</label>
+      <input id="takeTime" type="time" value="08:00">
+
+      ${currentUser.role === 'owner' ? `
+        <label>Asignar a</label>
+        <select id="takeAux">
+          ${(allAuxiliares()).map(a => `<option value="${a.id}">${a.name}</option>`).join('')}
+        </select>
+      ` : ''}
+
+      <label>Notas (opcional)</label>
+      <input id="takeNotes" type="text" placeholder="Anotaciones para el equipo...">
+
+      <button class="btn btn-verde" onclick='takeCita("${a.id}")' style="margin-top:14px;">
+        Confirmar y tomar esta cita
+      </button>
+    </div>
+  `;
+}
+
+function renderAssignedActions(a) {
+  const phone = (a.patient_phone1 || '').replace(/\D/g,'').slice(-10);
+  const phoneArg = '57' + phone;
+  const dateStr = a.scheduled_date ? formatSingleDay(a.scheduled_date) : 'el día acordado';
+  const timeStr = a.scheduled_time ? ' a las ' + formatTime(a.scheduled_time) : '';
+  const auxName = a.auxiliar?.name || 'nuestro auxiliar de enfermería';
+  const total = formatCOP((a.quote?.total) || 0);
+  const payText = a.payment_method === 'cash' ? 'en efectivo' : a.payment_method === 'transfer' ? 'por transferencia' : '';
+
+  const msg = `Hola ${a.patient_name.split(' ')[0]}, te confirmamos tu cita Domitest para *${dateStr}*${timeStr}. ${auxName} llegará a tu domicilio para realizar la toma de muestras. Total a pagar: ${total} ${payText}. Si tienes alguna duda, escríbenos por aquí.`;
+  const waUrl = `https://wa.me/${phoneArg}?text=${encodeURIComponent(msg)}`;
+
+  const isAdmin = currentUser.role === 'owner';
+  const today = new Date().toISOString().split('T')[0];
+  const currentTime = a.scheduled_time ? a.scheduled_time.slice(0,5) : '08:00';
+
+  return `
+    <h3>Acciones</h3>
+
+    <button class="btn btn-verde" onclick='markCompleted("${a.id}")'>
+      Marcar como completada
+    </button>
+
+    <a class="btn btn-wa" href="${waUrl}" target="_blank" style="text-decoration:none;">
+      Enviar confirmación por WhatsApp
+    </a>
+
+    <button class="btn btn-secundario" onclick="toggleReagendar()">
+      Reagendar cita
+    </button>
+    <div class="reagendar-form" id="reagendarForm">
+      <label>Nueva fecha</label>
+      <input type="date" id="reagDate" value="${a.scheduled_date || today}" min="${today}">
+      <label>Nueva hora</label>
+      <input type="time" id="reagTime" value="${currentTime}">
+      <button class="btn btn-primario" onclick='reagendarCita("${a.id}")' style="margin-top:12px;">
+        Confirmar nueva fecha
+      </button>
+    </div>
+
+    <button class="btn btn-warn" onclick='liberarCita("${a.id}")'>
+      Liberar cita
+    </button>
+
+    ${isAdmin ? `
+      <button class="btn btn-danger" onclick='cancelCita("${a.id}")'>
+        Cancelar definitivamente
+      </button>
+    ` : ''}
+  `;
+}
+
+function toggleReagendar() {
+  const form = document.getElementById('reagendarForm');
+  if (form) form.classList.toggle('show');
+}
+
+function allAuxiliares() {
+  // Si la lista de usuarios ya está cargada, usarla (filtra activos, excluye al owner)
+  if (usersList && usersList.length > 0) {
+    return usersList.filter(u => u.active && u.role !== 'owner');
+  }
+  // Sino, recolectar de citas asignadas
+  const seen = {};
+  for (const a of allAppointments) {
+    if (a.auxiliar && a.auxiliar.id) seen[a.auxiliar.id] = a.auxiliar;
+  }
+  return Object.values(seen);
+}
+
+// ── CONFIG (USUARIOS) ─────────────────────────────────────────────
+let usersList = [];
+let openEditId = null;       // id del usuario que tiene form abierto
+let editMode = null;         // 'edit' | 'password'
+
+async function loadUsers() {
+  try {
+    usersList = await api('/api/users');
+    renderConfig();
+  } catch (err) {
+    document.getElementById('dashContent').innerHTML = '<div class="empty-state"><div class="icon">⚠</div><p>Error: ' + err.message + '</p></div>';
+  }
+}
+
+async function loadUsersSilent() {
+  try { usersList = await api('/api/users'); } catch (e) { /* silent */ }
+}
+
+function renderConfig() {
+  const dash = document.getElementById('dashContent');
+  let html = `
+    <div class="config-header">
+      <h2>Configuración de usuarios</h2>
+      <button class="btn-add" onclick="openCreateForm()">➕ Agregar auxiliar</button>
+    </div>
+  `;
+
+  // Form para crear nuevo (si está abierto)
+  if (openEditId === 'new') {
+    html += renderUserForm(null);
+  }
+
+  // Lista de usuarios existentes
+  for (const u of usersList) {
+    html += renderUserCard(u);
+  }
+
+  dash.innerHTML = html;
+}
+
+function renderUserCard(u) {
+  const isOwner = u.role === 'owner';
+  const isInactive = !u.active;
+
+  // Si este usuario está en modo edición o password change, mostrar form
+  if (openEditId === u.id) {
+    if (editMode === 'edit') return renderUserCardWithForm(u, renderUserForm(u));
+    if (editMode === 'password') return renderUserCardWithForm(u, renderPasswordForm(u));
+  }
+
+  return `
+    <div class="user-card ${u.role}${isInactive ? ' inactive' : ''}">
+      <div class="top">
+        <div>
+          <div class="name">${escapeHtml(u.name)}</div>
+        </div>
+        <span class="role-tag">${isOwner ? 'Administradora' : 'Auxiliar'}</span>
+      </div>
+      <div class="info-line">Usuario: <strong>${escapeHtml(u.username)}</strong></div>
+      <div class="info-line">Documento: <strong>${u.document ? escapeHtml(u.document) : '—'}</strong></div>
+      <div class="info-line">Estado: <strong style="color:${u.active ? 'var(--green-dark)' : 'var(--error)'};">${u.active ? 'Activo' : 'Inactivo'}</strong></div>
+      <div class="actions">
+        <button class="btn-action" onclick="openEdit('${u.id}', 'edit')">✏️ Editar</button>
+        <button class="btn-action" onclick="openEdit('${u.id}', 'password')">🔑 Cambiar clave</button>
+        ${!isOwner ? (u.active
+          ? `<button class="btn-action danger" onclick="toggleActive('${u.id}', false)">🚫 Desactivar</button>`
+          : `<button class="btn-action activate" onclick="toggleActive('${u.id}', true)">✓ Activar</button>`
+        ) : ''}
+      </div>
+    </div>
+  `;
+}
+
+function renderUserCardWithForm(u, formHtml) {
+  return `
+    <div class="user-card ${u.role}">
+      <div class="top">
+        <div><div class="name">${escapeHtml(u.name)}</div></div>
+        <span class="role-tag">${u.role === 'owner' ? 'Administradora' : 'Auxiliar'}</span>
+      </div>
+      ${formHtml}
+    </div>
+  `;
+}
+
+function renderUserForm(u) {
+  const isNew = !u;
+  return `
+    <div class="user-form">
+      <label>Nombre completo</label>
+      <input id="ufName" type="text" value="${u ? escapeHtml(u.name) : ''}" placeholder="Nombre y apellido">
+
+      <label>Documento (cédula)</label>
+      <input id="ufDoc" type="text" value="${u && u.document ? escapeHtml(u.document) : ''}" placeholder="1234567890">
+
+      <label>Usuario (para iniciar sesión)</label>
+      <input id="ufUsername" type="text" value="${u ? escapeHtml(u.username) : ''}" placeholder="ej: aux3">
+
+      ${isNew ? `
+        <label>Contraseña inicial</label>
+        <input id="ufPassword" type="password" placeholder="Mínimo 6 caracteres">
+      ` : ''}
+
+      <div class="form-actions">
+        <button class="btn btn-verde" onclick="saveUser(${u ? `'${u.id}'` : 'null'})">${isNew ? 'Crear' : 'Guardar cambios'}</button>
+        <button class="btn btn-secundario" onclick="cancelForm()">Cancelar</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderPasswordForm(u) {
+  return `
+    <div class="user-form">
+      <label>Nueva contraseña para ${escapeHtml(u.name)}</label>
+      <input id="ufNewPass" type="password" placeholder="Mínimo 6 caracteres">
+
+      <label>Confirmar nueva contraseña</label>
+      <input id="ufNewPass2" type="password" placeholder="Vuelve a escribirla">
+
+      <div class="form-actions">
+        <button class="btn btn-verde" onclick="savePassword('${u.id}')">Cambiar contraseña</button>
+        <button class="btn btn-secundario" onclick="cancelForm()">Cancelar</button>
+      </div>
+    </div>
+  `;
+}
+
+function openCreateForm() {
+  openEditId = 'new';
+  editMode = 'edit';
+  renderConfig();
+}
+
+function openEdit(id, mode) {
+  openEditId = id;
+  editMode = mode;
+  renderConfig();
+}
+
+function cancelForm() {
+  openEditId = null;
+  editMode = null;
+  renderConfig();
+}
+
+async function saveUser(id) {
+  const name = document.getElementById('ufName').value.trim();
+  const username = document.getElementById('ufUsername').value.trim().toLowerCase();
+  const document_ = document.getElementById('ufDoc').value.trim();
+  const passEl = document.getElementById('ufPassword');
+  const password = passEl ? passEl.value : null;
+
+  if (!name) return showToast('Nombre requerido', 'error');
+  if (!username) return showToast('Usuario requerido', 'error');
+  if (!id && (!password || password.length < 6)) return showToast('Contraseña mínimo 6 caracteres', 'error');
+
+  const body = { name, username, document: document_ || null };
+  if (password) body.password = password;
+
+  try {
+    if (id) {
+      await api('/api/users/' + id, { method: 'PATCH', body: JSON.stringify(body) });
+      showToast('Usuario actualizado', 'success');
+    } else {
+      await api('/api/users', { method: 'POST', body: JSON.stringify(body) });
+      showToast('Auxiliar creado', 'success');
+    }
+    cancelForm();
+    await loadUsers();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function savePassword(id) {
+  const p1 = document.getElementById('ufNewPass').value;
+  const p2 = document.getElementById('ufNewPass2').value;
+  if (p1.length < 6) return showToast('Mínimo 6 caracteres', 'error');
+  if (p1 !== p2) return showToast('Las contraseñas no coinciden', 'error');
+
+  try {
+    await api('/api/users/' + id, { method: 'PATCH', body: JSON.stringify({ password: p1 }) });
+    showToast('Contraseña actualizada', 'success');
+    cancelForm();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function toggleActive(id, active) {
+  const action = active ? 'reactivar' : 'desactivar';
+  if (!confirm('¿Estás segura de ' + action + ' a este auxiliar?')) return;
+  try {
+    await api('/api/users/' + id, { method: 'PATCH', body: JSON.stringify({ active }) });
+    showToast('Usuario ' + (active ? 'reactivado' : 'desactivado'), 'success');
+    await loadUsers();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────────
+async function takeCita(id) {
+  const date = document.getElementById('takeDate').value;
+  const time = document.getElementById('takeTime').value;
+  const notesEl = document.getElementById('takeNotes');
+  const notes = notesEl ? notesEl.value : '';
+  const auxEl = document.getElementById('takeAux');
+  const auxId = auxEl ? auxEl.value : null;
+
+  if (!date) return showToast('Elige una fecha', 'error');
+  if (!time) return showToast('Indica la hora', 'error');
+
+  const payload = {
+    status: 'assigned',
+    scheduled_date: date,
+    scheduled_time: time + ':00',
+    notes: notes || null
+  };
+  if (auxId) payload.auxiliar_id = auxId;
+
+  try {
+    await api('/api/appointments/' + id, { method: 'PATCH', body: JSON.stringify(payload) });
+    showToast('Cita tomada exitosamente', 'success');
+    await loadAppointments();
+    const updated = allAppointments.find(x => x.id === id);
+    if (updated) showDetail(updated);
+  } catch (err) {
+    showToast('Error: ' + err.message, 'error');
+  }
+}
+
+async function markCompleted(id) {
+  if (!confirm('¿Marcar esta cita como completada?')) return;
+  try {
+    await api('/api/appointments/' + id, { method: 'PATCH', body: JSON.stringify({ status: 'completed' }) });
+    showToast('Cita marcada como completada', 'success');
+    await loadAppointments();
+    backToDash();
+  } catch (err) { showToast('Error: ' + err.message, 'error'); }
+}
+
+async function cancelCita(id) {
+  if (!confirm('¿Cancelar esta cita DEFINITIVAMENTE? Esta acción es solo para admin y no se podrá reabrir.')) return;
+  try {
+    await api('/api/appointments/' + id, { method: 'PATCH', body: JSON.stringify({ status: 'cancelled' }) });
+    showToast('Cita cancelada', 'success');
+    await loadAppointments();
+    backToDash();
+  } catch (err) { showToast('Error: ' + err.message, 'error'); }
+}
+
+async function liberarCita(id) {
+  if (!confirm('¿Liberar esta cita? Volverá a "Pendientes" para que otra persona la pueda tomar.')) return;
+  try {
+    await api('/api/appointments/' + id, { method: 'PATCH', body: JSON.stringify({
+      status: 'pending',
+      auxiliar_id: null,
+      scheduled_date: null,
+      scheduled_time: null
+    }) });
+    showToast('Cita liberada — volvió a pendientes', 'success');
+    await loadAppointments();
+    backToDash();
+  } catch (err) { showToast('Error: ' + err.message, 'error'); }
+}
+
+async function reagendarCita(id) {
+  const date = document.getElementById('reagDate').value;
+  const time = document.getElementById('reagTime').value;
+  if (!date) return showToast('Elige una fecha', 'error');
+  if (!time) return showToast('Indica la hora', 'error');
+
+  try {
+    await api('/api/appointments/' + id, { method: 'PATCH', body: JSON.stringify({
+      scheduled_date: date,
+      scheduled_time: time + ':00'
+    }) });
+    showToast('Cita reagendada', 'success');
+    await loadAppointments();
+    const updated = allAppointments.find(x => x.id === id);
+    if (updated) showDetail(updated);
+  } catch (err) { showToast('Error: ' + err.message, 'error'); }
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────
+function formatCOP(n) { return '$' + (parseInt(n) || 0).toLocaleString('es-CO'); }
+function formatExamName(name) {
+  if (!name) return '';
+  const lower = name.toLowerCase();
+  return lower.charAt(0).toUpperCase() + lower.slice(1);
+}
+function formatDays(dates) {
+  if (!Array.isArray(dates) || dates.length === 0) return '-';
+  return dates.map(iso => formatSingleDay(iso)).join(', ');
+}
+function formatSingleDay(iso) {
+  if (!iso) return '-';
+  const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const [y,m,d] = String(iso).split('T')[0].split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  return `${dias[dt.getDay()]} ${d} ${meses[m-1]}`;
+}
+// Formato dd/mm/aaaa para fechas de nacimiento
+function formatBirthdate(iso) {
+  if (!iso) return '-';
+  const [y,m,d] = String(iso).split('T')[0].split('-');
+  return `${d}/${m}/${y}`;
+}
+function formatTime(t) {
+  if (!t) return '';
+  const [h, m] = t.split(':');
+  const hi = parseInt(h);
+  const ampm = hi >= 12 ? 'PM' : 'AM';
+  const h12 = hi % 12 || 12;
+  return `${h12}:${m} ${ampm}`;
+}
+function formatDateTime(iso) {
+  const d = new Date(iso);
+  return `${formatSingleDay(iso)} ${d.toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
+}
+function timeSince(iso) {
+  const ms = Date.now() - new Date(iso).getTime();
+  const min = Math.floor(ms / 60000);
+  if (min < 1) return 'ahora';
+  if (min < 60) return `hace ${min} min`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `hace ${h} h`;
+  const d = Math.floor(h / 24);
+  return `hace ${d} d`;
+}
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast', 2800);
+}
+
+init();
+</script>
+
+</body>
+</html>
