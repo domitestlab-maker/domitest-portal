@@ -1145,7 +1145,7 @@ function isInMineTab(a) {
 }
 
 function renderDashboard() {
-  // Update badges
+  // Update badges (siempre, aunque estemos en config)
   const counts = { pending: 0, mine: 0 };
   for (const a of allAppointments) {
     if (a.status === 'pending') counts.pending++;
@@ -1153,6 +1153,10 @@ function renderDashboard() {
   }
   document.getElementById('badgePending').textContent = counts.pending;
   document.getElementById('badgeMine').textContent = counts.mine;
+
+  // Si estamos en configuración, no sobreescribir dashContent (la vista de config
+  // se construye desde loadUsers y el auto-refresh no debe romperla)
+  if (currentTab === 'config') return;
 
   // Filter for current tab
   let filtered = [];
@@ -1219,6 +1223,13 @@ function buildCard(a) {
 // ── TAB SWITCH ────────────────────────────────────────────────────
 function setTab(tab) {
   currentTab = tab;
+  // Si veníamos de la vista de detalle, cerrarla y mostrar el dashboard.
+  const detail = document.getElementById('detail');
+  const dashboard = document.getElementById('dashboard');
+  if (detail && detail.style.display !== 'none') {
+    detail.style.display = 'none';
+    if (dashboard) dashboard.style.display = 'block';
+  }
   document.querySelectorAll('.tab-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.tab === tab);
   });
