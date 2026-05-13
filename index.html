@@ -1687,16 +1687,23 @@ async function takeCita(id) {
   };
   if (auxId) payload.auxiliar_id = auxId;
 
-  // Recuperar el appt antes de mutarlo para construir el mensaje
+  // Quién aparece como remitente en el WhatsApp:
+  //  - Si admin asigna: la auxiliar elegida en el dropdown
+  //  - Si auxiliar toma: ella misma
+  let senderName = currentUser.name;
+  if (isAdmin && auxEl && auxEl.selectedIndex >= 0) {
+    senderName = auxEl.options[auxEl.selectedIndex].text;
+  }
+
   const apptBefore = allAppointments.find(x => x.id === id);
 
   try {
     await api('/api/appointments/' + id, { method: 'PATCH', body: JSON.stringify(payload) });
-    showToast(isAdmin ? 'Cita asignada' : 'Cita tomada — abriendo WhatsApp', 'success');
+    showToast(isAdmin ? 'Cita asignada — abriendo WhatsApp' : 'Cita tomada — abriendo WhatsApp', 'success');
 
-    // Si es auxiliar quien toma, abrir WhatsApp con mensaje pre-llenado con SU nombre
-    if (!isAdmin && apptBefore) {
-      const msg = buildConfirmMessage(apptBefore, date, time, currentUser.name);
+    // Abrir WhatsApp con el mensaje pre-llenado (admin firma con el nombre de la auxiliar asignada)
+    if (apptBefore) {
+      const msg = buildConfirmMessage(apptBefore, date, time, senderName);
       openWhatsAppPatient(apptBefore, msg);
     }
 
