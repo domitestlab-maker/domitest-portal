@@ -847,6 +847,25 @@
 </head>
 <body>
 
+<script>
+  // Si está embebido en otra página (ej. domitest.com.co):
+  //  - Ocultar logos propios para evitar duplicación con la página contenedora
+  //  - Quitar min-height 100vh para que el iframe se ajuste al contenido real
+  if (window.self !== window.top) {
+    document.documentElement.style.minHeight = '0';
+    window.addEventListener('DOMContentLoaded', function() {
+      document.body.style.minHeight = '0';
+      // Ocultar logos: en login (.login-card img) y en app (header.app-header img)
+      document.querySelectorAll('.login-card > img, header.app-header > img').forEach(function(el){
+        el.style.display = 'none';
+      });
+      // Quitar el min-height del login-screen
+      const ls = document.querySelector('.login-screen');
+      if (ls) ls.style.minHeight = '0';
+    });
+  }
+</script>
+
 <!-- LOGIN -->
 <section id="login" class="pantalla activa">
   <div class="login-screen">
