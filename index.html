@@ -1660,11 +1660,6 @@ function buildConfirmMessage(appt, dateISO, timeHHMM, auxName) {
   return `Hola ${firstName}, soy ${auxName} de Domitest. Confirmo tu cita para *${dateStr}* a las *${timeStr}*. Llegaré a tu domicilio para realizar la toma de muestras. Total a pagar: ${total} ${payText}. Cualquier duda, escríbeme aquí. ¡Nos vemos!`;
 }
 
-function buildApologyMessage(appt, auxName) {
-  const firstName = (appt.patient_name || '').split(' ')[0];
-  return `Hola ${firstName}, soy ${auxName} de Domitest. Lamento informarte que tuve un imprevisto y no podré realizar tu toma de muestras agendada. Otro auxiliar te contactará pronto para reagendar. Disculpa la inconveniencia.`;
-}
-
 function openWhatsAppPatient(appt, message) {
   const phone = (appt.patient_phone1 || '').replace(/\D/g, '').slice(-10);
   const url = `https://wa.me/57${phone}?text=${encodeURIComponent(message)}`;
@@ -1735,14 +1730,7 @@ async function cancelCita(id) {
 }
 
 async function liberarCita(id) {
-  const isAuxiliar = currentUser.role !== 'owner';
-  const msg = isAuxiliar
-    ? '¿Liberar esta cita? Se abrirá WhatsApp para avisarle al paciente, y la cita volverá a "Pendientes" para que otra auxiliar la tome.'
-    : '¿Liberar esta cita? Volverá a "Pendientes" para que otra persona la pueda tomar.';
-  if (!confirm(msg)) return;
-
-  const apptBefore = allAppointments.find(x => x.id === id);
-
+  if (!confirm('¿Liberar esta cita? Volverá a "Pendientes" para que otra persona la pueda tomar. (No se notifica al paciente.)')) return;
   try {
     await api('/api/appointments/' + id, { method: 'PATCH', body: JSON.stringify({
       status: 'pending',
@@ -1751,13 +1739,6 @@ async function liberarCita(id) {
       scheduled_time: null
     }) });
     showToast('Cita liberada — volvió a pendientes', 'success');
-
-    // Si es auxiliar quien libera, abrir WhatsApp con mensaje de disculpa
-    if (isAuxiliar && apptBefore) {
-      const message = buildApologyMessage(apptBefore, currentUser.name);
-      openWhatsAppPatient(apptBefore, message);
-    }
-
     await loadAppointments();
     backToDash();
   } catch (err) { showToast('Error: ' + err.message, 'error'); }
