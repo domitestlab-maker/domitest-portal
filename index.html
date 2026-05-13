@@ -1074,11 +1074,15 @@ function enterApp() {
   document.getElementById('userRole').textContent = currentUser.role === 'owner' ? 'Administradora' : 'Auxiliar';
   // Renombrar segunda pestaña según rol
   document.getElementById('mineTabLabel').textContent = currentUser.role === 'owner' ? 'Asignadas' : 'Mis citas';
-  // Mostrar botón de configuración solo a admin
+  // Mostrar botón de configuración solo a admin (ocultarlo explícitamente para auxiliares
+  // por si quedó visible de una sesión previa de admin sin recargar la página)
+  const gear = document.getElementById('btnGear');
   if (currentUser.role === 'owner') {
-    document.getElementById('btnGear').style.display = '';
+    gear.style.display = '';
     // Pre-cargar usuarios para que el dropdown de "Asignar a" funcione
     loadUsersSilent();
+  } else {
+    gear.style.display = 'none';
   }
   loadAppointments();
   if (refreshTimer) clearInterval(refreshTimer);
@@ -1331,9 +1335,12 @@ function renderDetail(a) {
 function renderTakeForm(a) {
   const dateOptions = (a.preferred_dates || []).map(d => `<option value="${d}">${formatSingleDay(d)}</option>`).join('');
   const isAdmin = currentUser.role === 'owner';
+  const title = isAdmin ? 'Asignar esta cita' : 'Tomar esta cita';
+  const btnLabel = isAdmin ? '✓ Asignar cita' : '✋ Tomar esta cita';
+  const auxOptions = allAuxiliares().map(u => `<option value="${u.id}">${u.name}</option>`).join('');
 
   return `
-    <h3>Tomar esta cita</h3>
+    <h3>${title}</h3>
     <div class="take-form">
       <label>Día (de los que pidió el paciente)</label>
       <select id="takeDate">${dateOptions}</select>
@@ -1345,7 +1352,7 @@ function renderTakeForm(a) {
         <div class="assign-block">
           <label>👤 Asignar auxiliar</label>
           <select id="takeAux">
-            ${(allAuxiliares()).map(a => `<option value="${a.id}">${a.name}</option>`).join('')}
+            ${auxOptions || '<option value="">No hay auxiliares activas</option>'}
           </select>
         </div>
       ` : ''}
@@ -1354,7 +1361,7 @@ function renderTakeForm(a) {
       <input id="takeNotes" type="text" placeholder="Anotaciones para el equipo...">
 
       <button class="btn btn-success-line" onclick='takeCita("${a.id}")' style="margin-top:16px;">
-        ✋ Confirmar y tomar esta cita
+        ${btnLabel}
       </button>
     </div>
   `;
@@ -1363,13 +1370,17 @@ function renderTakeForm(a) {
 function renderAssignedActions(a) {
   const phone = (a.patient_phone1 || '').replace(/\D/g,'').slice(-10);
   const phoneArg = '57' + phone;
-  const dateStr = a.scheduled_date ? formatSingleDay(a.scheduled_date) : 'el día acordado';
-  const timeStr = a.scheduled_time ? ' a las ' + formatTime(a.scheduled_time) : '';
-  const auxName = a.auxiliar?.name || 'nuestro auxiliar de enfermería';
-  const total = formatCOP((a.quote?.total) || 0);
-  const payText = a.payment_method === 'cash' ? 'en efectivo' : a.payment_method === 'transfer' ? 'por transferencia' : '';
+  // Quién es el remitente del mensaje: la auxiliar asignada (o admin si fue ella quien asignó)
+  const senderName = a.auxiliar?.name || currentUser.name;
 
-  const msg = `Hola ${a.patient_name.split(' ')[0]}, te confirmamos tu cita Domitest para *${dateStr}*${timeStr}. ${auxName} llegará a tu domicilio para realizar la toma de muestras. Total a pagar: ${total} ${payText}. Si tienes alguna duda, escríbenos por aquí.`;
+  // Mensaje de confirmación (mismo formato que el automático al tomar)
+  const dateStr = a.scheduled_date ? formatSingleDay(a.scheduled_date) : 'el día acordado';
+  const timeStr = a.scheduled_time ? formatTime(a.scheduled_time) : '';
+  const total = formatCOP((a.quote?.total) || 0);
+  const payText = a.payment_method === 'cash' ? 'en efectivo' :
+                  a.payment_method === 'transfer' ? 'por transferencia' : '';
+  const firstName = (a.patient_name || '').split(' ')[0];
+  const msg = `Hola ${firstName}, soy ${senderName} de Domitest. Confirmo tu cita para *${dateStr}*${timeStr ? ' a las *' + timeStr + '*' : ''}. Llegaré a tu domicilio para realizar la toma de muestras. Total a pagar: ${total} ${payText}. Cualquier duda, escríbeme aquí. ¡Nos vemos!`;
   const waUrl = `https://wa.me/${phoneArg}?text=${encodeURIComponent(msg)}`;
 
   const isAdmin = currentUser.role === 'owner';
@@ -1638,6 +1649,28 @@ async function toggleActive(id, active) {
 }
 
 // ── ACTIONS ───────────────────────────────────────────────────────
+// Helpers para mensajes a WhatsApp del paciente
+function buildConfirmMessage(appt, dateISO, timeHHMM, auxName) {
+  const dateStr = formatSingleDay(dateISO);
+  const timeStr = formatTime(timeHHMM);
+  const total = formatCOP((appt.quote && appt.quote.total) || 0);
+  const payText = appt.payment_method === 'cash' ? 'en efectivo' :
+                  appt.payment_method === 'transfer' ? 'por transferencia' : '';
+  const firstName = (appt.patient_name || '').split(' ')[0];
+  return `Hola ${firstName}, soy ${auxName} de Domitest. Confirmo tu cita para *${dateStr}* a las *${timeStr}*. Llegaré a tu domicilio para realizar la toma de muestras. Total a pagar: ${total} ${payText}. Cualquier duda, escríbeme aquí. ¡Nos vemos!`;
+}
+
+function buildApologyMessage(appt, auxName) {
+  const firstName = (appt.patient_name || '').split(' ')[0];
+  return `Hola ${firstName}, soy ${auxName} de Domitest. Lamento informarte que tuve un imprevisto y no podré realizar tu toma de muestras agendada. Otro auxiliar te contactará pronto para reagendar. Disculpa la inconveniencia.`;
+}
+
+function openWhatsAppPatient(appt, message) {
+  const phone = (appt.patient_phone1 || '').replace(/\D/g, '').slice(-10);
+  const url = `https://wa.me/57${phone}?text=${encodeURIComponent(message)}`;
+  window.open(url, '_blank');
+}
+
 async function takeCita(id) {
   const date = document.getElementById('takeDate').value;
   const time = document.getElementById('takeTime').value;
@@ -1649,6 +1682,9 @@ async function takeCita(id) {
   if (!date) return showToast('Elige una fecha', 'error');
   if (!time) return showToast('Indica la hora', 'error');
 
+  const isAdmin = currentUser.role === 'owner';
+  if (isAdmin && !auxId) return showToast('Selecciona el auxiliar a asignar', 'error');
+
   const payload = {
     status: 'assigned',
     scheduled_date: date,
@@ -1657,9 +1693,19 @@ async function takeCita(id) {
   };
   if (auxId) payload.auxiliar_id = auxId;
 
+  // Recuperar el appt antes de mutarlo para construir el mensaje
+  const apptBefore = allAppointments.find(x => x.id === id);
+
   try {
     await api('/api/appointments/' + id, { method: 'PATCH', body: JSON.stringify(payload) });
-    showToast('Cita tomada exitosamente', 'success');
+    showToast(isAdmin ? 'Cita asignada' : 'Cita tomada — abriendo WhatsApp', 'success');
+
+    // Si es auxiliar quien toma, abrir WhatsApp con mensaje pre-llenado con SU nombre
+    if (!isAdmin && apptBefore) {
+      const msg = buildConfirmMessage(apptBefore, date, time, currentUser.name);
+      openWhatsAppPatient(apptBefore, msg);
+    }
+
     await loadAppointments();
     const updated = allAppointments.find(x => x.id === id);
     if (updated) showDetail(updated);
@@ -1689,7 +1735,14 @@ async function cancelCita(id) {
 }
 
 async function liberarCita(id) {
-  if (!confirm('¿Liberar esta cita? Volverá a "Pendientes" para que otra persona la pueda tomar.')) return;
+  const isAuxiliar = currentUser.role !== 'owner';
+  const msg = isAuxiliar
+    ? '¿Liberar esta cita? Se abrirá WhatsApp para avisarle al paciente, y la cita volverá a "Pendientes" para que otra auxiliar la tome.'
+    : '¿Liberar esta cita? Volverá a "Pendientes" para que otra persona la pueda tomar.';
+  if (!confirm(msg)) return;
+
+  const apptBefore = allAppointments.find(x => x.id === id);
+
   try {
     await api('/api/appointments/' + id, { method: 'PATCH', body: JSON.stringify({
       status: 'pending',
@@ -1698,6 +1751,13 @@ async function liberarCita(id) {
       scheduled_time: null
     }) });
     showToast('Cita liberada — volvió a pendientes', 'success');
+
+    // Si es auxiliar quien libera, abrir WhatsApp con mensaje de disculpa
+    if (isAuxiliar && apptBefore) {
+      const message = buildApologyMessage(apptBefore, currentUser.name);
+      openWhatsAppPatient(apptBefore, message);
+    }
+
     await loadAppointments();
     backToDash();
   } catch (err) { showToast('Error: ' + err.message, 'error'); }
