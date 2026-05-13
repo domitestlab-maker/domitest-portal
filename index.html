@@ -1387,7 +1387,8 @@ function renderAssignedActions(a) {
   const today = new Date().toISOString().split('T')[0];
   const currentTime = a.scheduled_time ? a.scheduled_time.slice(0,5) : '08:00';
 
-  // Auxiliares: solo 3 acciones (WhatsApp, Liberar). Admin: todas.
+  // Auxiliar ve solo "Devolver cita" (el WhatsApp ya se envió al tomar la cita).
+  // Admin ve: completar, WhatsApp manual, reagendar, devolver, cancelar definitivo.
   return `
     <h3>Acciones</h3>
 
@@ -1395,13 +1396,11 @@ function renderAssignedActions(a) {
       <button class="btn btn-success-line" onclick='markCompleted("${a.id}")'>
         ✓ Marcar como completada
       </button>
-    ` : ''}
 
-    <a class="btn btn-wa" href="${waUrl}" target="_blank" style="text-decoration:none;">
-      💬 Enviar confirmación al WhatsApp del paciente
-    </a>
+      <a class="btn btn-wa" href="${waUrl}" target="_blank" style="text-decoration:none;">
+        💬 Enviar mensaje al paciente
+      </a>
 
-    ${isAdmin ? `
       <button class="btn btn-secundario" onclick="toggleReagendar()">
         📅 Reagendar cita
       </button>
@@ -1417,7 +1416,7 @@ function renderAssignedActions(a) {
     ` : ''}
 
     <button class="btn btn-warn" onclick='liberarCita("${a.id}")'>
-      ↩ Liberar cita
+      ↩ Devolver cita
     </button>
 
     ${isAdmin ? `
