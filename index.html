@@ -734,13 +734,13 @@
   .btn-verde:hover { transform: translateY(-1px); }
   .btn-verde:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
-  .btn-wa {
+  .btn-wa, .btn-success-line {
     background: var(--white);
     color: var(--green-dark);
     border: 1.5px solid var(--green);
     margin-top: 8px;
   }
-  .btn-wa:hover { background: var(--green-light); }
+  .btn-wa:hover, .btn-success-line:hover { background: var(--green-light); }
 
   .btn-secundario {
     background: var(--white);
@@ -817,14 +817,31 @@
   }
   .take-form select, .take-form input {
     width: 100%;
-    padding: 11px 13px;
+    padding: 12px 14px;
     border: 1.5px solid var(--border);
     border-radius: 10px;
     font-family: inherit;
-    font-size: 0.95rem;
+    font-size: 1rem;
     background: var(--white);
   }
   .take-form select:focus, .take-form input:focus { outline: none; border-color: var(--blue); }
+  .take-form .assign-block {
+    background: var(--blue-light);
+    border: 1.5px solid var(--blue);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-top: 14px;
+  }
+  .take-form .assign-block label {
+    color: var(--blue-dark);
+    margin-top: 0;
+    font-size: 0.92rem;
+  }
+  .take-form .assign-block select {
+    margin-top: 4px;
+    border-color: var(--blue);
+    font-weight: 600;
+  }
 
   /* PANTALLA */
   .pantalla { display: none; }
@@ -1312,8 +1329,8 @@ function renderDetail(a) {
 }
 
 function renderTakeForm(a) {
-  const isAuxiliar = currentUser.role === 'auxiliar';
   const dateOptions = (a.preferred_dates || []).map(d => `<option value="${d}">${formatSingleDay(d)}</option>`).join('');
+  const isAdmin = currentUser.role === 'owner';
 
   return `
     <h3>Tomar esta cita</h3>
@@ -1324,18 +1341,20 @@ function renderTakeForm(a) {
       <label>Hora exacta</label>
       <input id="takeTime" type="time" value="08:00">
 
-      ${currentUser.role === 'owner' ? `
-        <label>Asignar a</label>
-        <select id="takeAux">
-          ${(allAuxiliares()).map(a => `<option value="${a.id}">${a.name}</option>`).join('')}
-        </select>
+      ${isAdmin ? `
+        <div class="assign-block">
+          <label>👤 Asignar auxiliar</label>
+          <select id="takeAux">
+            ${(allAuxiliares()).map(a => `<option value="${a.id}">${a.name}</option>`).join('')}
+          </select>
+        </div>
       ` : ''}
 
       <label>Notas (opcional)</label>
       <input id="takeNotes" type="text" placeholder="Anotaciones para el equipo...">
 
-      <button class="btn btn-verde" onclick='takeCita("${a.id}")' style="margin-top:14px;">
-        Confirmar y tomar esta cita
+      <button class="btn btn-success-line" onclick='takeCita("${a.id}")' style="margin-top:16px;">
+        ✋ Confirmar y tomar esta cita
       </button>
     </div>
   `;
@@ -1357,37 +1376,42 @@ function renderAssignedActions(a) {
   const today = new Date().toISOString().split('T')[0];
   const currentTime = a.scheduled_time ? a.scheduled_time.slice(0,5) : '08:00';
 
+  // Auxiliares: solo 3 acciones (WhatsApp, Liberar). Admin: todas.
   return `
     <h3>Acciones</h3>
 
-    <button class="btn btn-verde" onclick='markCompleted("${a.id}")'>
-      Marcar como completada
-    </button>
+    ${isAdmin ? `
+      <button class="btn btn-success-line" onclick='markCompleted("${a.id}")'>
+        ✓ Marcar como completada
+      </button>
+    ` : ''}
 
     <a class="btn btn-wa" href="${waUrl}" target="_blank" style="text-decoration:none;">
-      Enviar confirmación por WhatsApp
+      💬 Enviar confirmación al WhatsApp del paciente
     </a>
 
-    <button class="btn btn-secundario" onclick="toggleReagendar()">
-      Reagendar cita
-    </button>
-    <div class="reagendar-form" id="reagendarForm">
-      <label>Nueva fecha</label>
-      <input type="date" id="reagDate" value="${a.scheduled_date || today}" min="${today}">
-      <label>Nueva hora</label>
-      <input type="time" id="reagTime" value="${currentTime}">
-      <button class="btn btn-primario" onclick='reagendarCita("${a.id}")' style="margin-top:12px;">
-        Confirmar nueva fecha
+    ${isAdmin ? `
+      <button class="btn btn-secundario" onclick="toggleReagendar()">
+        📅 Reagendar cita
       </button>
-    </div>
+      <div class="reagendar-form" id="reagendarForm">
+        <label>Nueva fecha</label>
+        <input type="date" id="reagDate" value="${a.scheduled_date || today}" min="${today}">
+        <label>Nueva hora</label>
+        <input type="time" id="reagTime" value="${currentTime}">
+        <button class="btn btn-secundario" onclick='reagendarCita("${a.id}")' style="margin-top:12px;">
+          ✓ Confirmar nueva fecha
+        </button>
+      </div>
+    ` : ''}
 
     <button class="btn btn-warn" onclick='liberarCita("${a.id}")'>
-      Liberar cita
+      ↩ Liberar cita
     </button>
 
     ${isAdmin ? `
       <button class="btn btn-danger" onclick='cancelCita("${a.id}")'>
-        Cancelar definitivamente
+        ✕ Cancelar definitivamente
       </button>
     ` : ''}
   `;
