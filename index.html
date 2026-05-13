@@ -1332,6 +1332,21 @@ function renderDetail(a) {
   `;
 }
 
+function buildTimeOptions(selected) {
+  const opts = [];
+  for (let h = 6; h <= 19; h++) {
+    for (const m of [0, 30]) {
+      const val = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+      const hi = h % 12 || 12;
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const label = `${hi}:${String(m).padStart(2,'0')} ${ampm}`;
+      const sel = val === selected ? 'selected' : '';
+      opts.push(`<option value="${val}" ${sel}>${label}</option>`);
+    }
+  }
+  return opts.join('');
+}
+
 function renderTakeForm(a) {
   const dateOptions = (a.preferred_dates || []).map(d => `<option value="${d}">${formatSingleDay(d)}</option>`).join('');
   const isAdmin = currentUser.role === 'owner';
@@ -1346,7 +1361,7 @@ function renderTakeForm(a) {
       <select id="takeDate">${dateOptions}</select>
 
       <label>Hora exacta</label>
-      <input id="takeTime" type="time" value="08:00">
+      <select id="takeTime">${buildTimeOptions('08:00')}</select>
 
       ${isAdmin ? `
         <div class="assign-block">
@@ -1408,7 +1423,7 @@ function renderAssignedActions(a) {
         <label>Nueva fecha</label>
         <input type="date" id="reagDate" value="${a.scheduled_date || today}" min="${today}">
         <label>Nueva hora</label>
-        <input type="time" id="reagTime" value="${currentTime}">
+        <select id="reagTime">${buildTimeOptions(currentTime)}</select>
         <button class="btn btn-secundario" onclick='reagendarCita("${a.id}")' style="margin-top:12px;">
           ✓ Confirmar nueva fecha
         </button>
